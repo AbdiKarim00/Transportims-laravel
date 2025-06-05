@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MaintenanceProvider extends Model
-{\n    use HasFactory;
+{
+    use HasFactory;
 
     protected $fillable = [
         'name',
