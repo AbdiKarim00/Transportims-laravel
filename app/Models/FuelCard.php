@@ -11,46 +11,45 @@ class FuelCard extends Model
 
     protected $fillable = [
         'card_number',
-        'provider_id',
-        'card_type_id',
-        'status_id',
+        'card_type',
+        'status',
         'issue_date',
         'expiry_date',
-        'pin_code',
-        'vehicle_id',
-        'driver_id',
         'daily_limit',
         'monthly_limit',
+        'assigned_driver_id',
+        'assigned_vehicle_id',
+        'fuel_type',
+        'service_provider',
+        'current_liters',
+        'current_balance',
+        'service_provider_id',
+        'fuel_type_id'
     ];
 
     public function provider()
     {
-        return $this->belongsTo(FuelCardProvider::class, 'provider_id');
+        return $this->belongsTo(FuelCardProvider::class, 'service_provider_id');
     }
 
     public function cardType()
     {
-        return $this->belongsTo(FuelCardType::class, 'card_type_id');
-    }
-
-    public function status()
-    {
-        return $this->belongsTo(FuelCardStatus::class, 'status_id');
+        return $this->belongsTo(FuelCardType::class, 'card_type');
     }
 
     public function vehicle()
     {
-        return $this->belongsTo(Vehicle::class);
+        return $this->belongsTo(Vehicle::class, 'assigned_vehicle_id');
     }
 
     public function driver()
     {
-        return $this->belongsTo(Driver::class);
+        return $this->belongsTo(Driver::class, 'assigned_driver_id');
     }
 
     public function transactions()
     {
-        return $this->hasMany(FuelCardTransaction::class);
+        return $this->hasMany(FuelCardTransaction::class, 'fuel_card_id');
     }
 
     public function history()

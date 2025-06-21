@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Trip extends Model
 {
@@ -13,36 +16,81 @@ class Trip extends Model
         'vehicle_id',
         'driver_id',
         'route_id',
-        'trip_status_id',
+        'status', // now a string column
+        'purpose_id',
         'start_time',
         'end_time',
-        'actual_distance',
-        'actual_time',
-        'recorded_by',
+        'start_location',
+        'end_location',
+        'distance',
+        'fuel_used_litres',
+        'notes',
+        'created_by'
     ];
 
-    public function vehicle()
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+        'distance' => 'decimal:2',
+        'fuel_used_litres' => 'decimal:2'
+    ];
+
+    public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
     }
 
-    public function driver()
+    public function driver(): BelongsTo
     {
         return $this->belongsTo(Driver::class);
     }
 
-    public function route()
+    public function route(): BelongsTo
     {
         return $this->belongsTo(Route::class);
     }
 
-    public function tripStatus()
+    // Removed status() relationship, use status string column directly
+
+    public function purpose(): BelongsTo
     {
-        return $this->belongsTo(TripStatus::class);
+        return $this->belongsTo(TripPurpose::class, 'purpose_id');
     }
 
-    public function recordedBy()
+    public function recordedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'recorded_by');
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function checkpoints(): HasMany
+    {
+        return $this->hasMany(TripCheckpoint::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(TripExpense::class);
+    }
+
+    public function passengers(): HasMany
+    {
+        return $this->hasMany(TripPassenger::class);
+    }
+
+    public function fuelTransactions(): HasMany
+    {
+        return $this->hasMany(FuelTransaction::class);
+    }
+
+    public function history(): HasMany
+    {
+        return $this->hasMany(TripHistory::class);
+    }
+
+    public function incidents()
+    {
+        return $this->hasMany(Incident::class, 'vehicle_id', 'vehicle_id')
+            ->where('driver_id', $this->driver_id)
+            ->whereDate('incident_date', DB::raw('DATE(start_time)'));
     }
 }

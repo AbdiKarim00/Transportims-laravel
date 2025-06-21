@@ -12,9 +12,9 @@ class FuelCardTransaction extends Model
     protected $fillable = [
         'fuel_card_id',
         'transaction_date',
-        'amount',
+        'amount_currency',
         'fuel_type_id',
-        'volume_liters',
+        'amount_litres',
         'odometer_reading',
         'location',
         'vendor',

@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserRole;
+use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class UserRoleController extends Controller
@@ -12,7 +13,14 @@ class UserRoleController extends Controller
      */
     public function index()
     {
-        return UserRole::with(['user', 'role'])->get();
+        return User::with('roles')->get()->map(function ($user) {
+            return [
+                'user_id' => $user->id,
+                'role_id' => $user->role_id,
+                'user' => $user,
+                'role' => $user->roles
+            ];
+        });
     }
 
     /**
@@ -25,38 +33,61 @@ class UserRoleController extends Controller
             'role_id' => 'required|exists:roles,id',
         ]);
 
-        $userRole = UserRole::create($request->all());
-        return response()->json($userRole, 201);
+        $user = User::findOrFail($request->user_id);
+        $user->role_id = $request->role_id;
+        $user->save();
+
+        return response()->json([
+            'user_id' => $user->id,
+            'role_id' => $user->role_id,
+            'user' => $user,
+            'role' => $user->roles
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(UserRole $userRole)
+    public function show($id)
     {
-        return $userRole->load(['user', 'role']);
+        $user = User::with('roles')->findOrFail($id);
+        return [
+            'user_id' => $user->id,
+            'role_id' => $user->role_id,
+            'user' => $user,
+            'role' => $user->roles
+        ];
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, UserRole $userRole)
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'user_id' => 'sometimes|required|exists:users,id',
-            'role_id' => 'sometimes|required|exists:roles,id',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
-        $userRole->update($request->all());
-        return response()->json($userRole, 200);
+        $user = User::findOrFail($id);
+        $user->role_id = $request->role_id;
+        $user->save();
+
+        return response()->json([
+            'user_id' => $user->id,
+            'role_id' => $user->role_id,
+            'user' => $user,
+            'role' => $user->roles
+        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(UserRole $userRole)
+    public function destroy($id)
     {
-        $userRole->delete();
+        $user = User::findOrFail($id);
+        $user->role_id = null;
+        $user->save();
         return response()->json(null, 204);
     }
 }

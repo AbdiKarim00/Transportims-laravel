@@ -9,15 +9,23 @@ class InsurancePolicy extends Model
 {
     use HasFactory;
 
+    protected $table = 'vehicle_insurance';
+
     protected $fillable = [
-        'policy_number',
-        'provider_id',
         'vehicle_id',
+        'policy_number',
+        'insurance_company',
+        'coverage_type',
         'start_date',
         'end_date',
-        'coverage_details',
         'premium_amount',
-        'status',
+        'status'
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'premium_amount' => 'decimal:2'
     ];
 
     public function vehicle()
@@ -27,6 +35,6 @@ class InsurancePolicy extends Model
 
     public function insuranceProvider()
     {
-        return $this->belongsTo(InsuranceProvider::class);
+        return $this->belongsTo(InsuranceProvider::class, 'insurance_company', 'name');
     }
 }

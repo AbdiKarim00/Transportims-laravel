@@ -22,7 +22,7 @@ class DriverStatusController extends Controller
     {
         $request->validate([
             'driver_id' => 'required|exists:drivers,id',
-            'status_type_id' => 'required|exists:driver_status_types,id',
+            'status_id' => 'required|exists:driver_status_types,id',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'reason' => 'nullable|string',
@@ -47,7 +47,7 @@ class DriverStatusController extends Controller
     {
         $request->validate([
             'driver_id' => 'sometimes|required|exists:drivers,id',
-            'status_type_id' => 'sometimes|required|exists:driver_status_types,id',
+            'status_id' => 'sometimes|required|exists:driver_status_types,id',
             'start_date' => 'sometimes|required|date',
             'end_date' => 'nullable|date|after:start_date',
             'reason' => 'nullable|string',

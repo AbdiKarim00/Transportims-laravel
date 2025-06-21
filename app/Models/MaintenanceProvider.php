@@ -19,6 +19,6 @@ class MaintenanceProvider extends Model
 
     public function maintenanceRecords()
     {
-        return $this->hasMany(MaintenanceRecord::class);
+        return $this->hasMany(MaintenanceRecord::class, 'provider_id');
     }
 }
