@@ -34,5 +34,13 @@ class MaintenanceSchedule extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
+    /**
+     * Get the service provider that owns the maintenance schedule.
+     */
+    public function serviceProvider(): BelongsTo
+    {
+        return $this->belongsTo(ServiceProvider::class);
+    }
+
     // Removed status_id and status() relationship, use status string column directly
 }
