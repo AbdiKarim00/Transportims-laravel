@@ -14,6 +14,10 @@ CREATE TABLE IF NOT EXISTS public.service_providers (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Add service_provider_id column to maintenance_schedules table if it doesn't exist
+ALTER TABLE public.maintenance_schedules
+ADD COLUMN IF NOT EXISTS service_provider_id BIGINT REFERENCES public.service_providers(id);
+
 -- Add some sample data for testing
 INSERT INTO public.service_providers (name, code, type, address, phone, email, contact_person, status) VALUES
 ('AutoTech Services', 'ATS001', 'Maintenance', '123 Industrial Ave', '+1234567890', 'info@autotech.com', 'John Smith', true),
