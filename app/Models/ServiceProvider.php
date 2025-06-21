@@ -35,4 +35,9 @@ class ServiceProvider extends Model
     {
         return $this->hasMany(MaintenanceRecord::class, 'provider_id');
     }
+
+    public function maintenanceSchedules(): HasMany
+    {
+        return $this->hasMany(MaintenanceSchedule::class, 'service_provider_id');
+    }
 }
