@@ -12,6 +12,7 @@ class MaintenanceSchedule extends Model
 
     protected $fillable = [
         'vehicle_id',
+        'service_provider_id',
         'maintenance_type',
         'scheduled_date',
         'status',
@@ -31,6 +32,14 @@ class MaintenanceSchedule extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    /**
+     * Get the service provider that owns the maintenance schedule.
+     */
+    public function serviceProvider(): BelongsTo
+    {
+        return $this->belongsTo(ServiceProvider::class);
     }
 
     // Removed status_id and status() relationship, use status string column directly
