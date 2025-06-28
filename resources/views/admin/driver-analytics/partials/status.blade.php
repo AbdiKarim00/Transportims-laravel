@@ -24,7 +24,7 @@
                     <h6 class="text-sm font-medium text-muted-foreground">Active</h6>
                     <h2 class="text-2xl font-bold text-foreground">{{ $statusStats['active'] ?? 0 }}</h2>
                 </div>
-                <i class="fas fa-user-check text-2xl text-green-500"></i>
+                <i class="fas fa-user-check text-2xl text-primary"></i>
             </div>
         </div>
     </div>
@@ -37,7 +37,7 @@
                     <h6 class="text-sm font-medium text-muted-foreground">On Leave</h6>
                     <h2 class="text-2xl font-bold text-foreground">{{ $statusStats['on_leave'] ?? 0 }}</h2>
                 </div>
-                <i class="fas fa-user-clock text-2xl text-yellow-500"></i>
+                <i class="fas fa-user-clock text-2xl text-primary"></i>
             </div>
         </div>
     </div>
@@ -50,7 +50,7 @@
                     <h6 class="text-sm font-medium text-muted-foreground">Suspended</h6>
                     <h2 class="text-2xl font-bold text-foreground">{{ $statusStats['suspended'] ?? 0 }}</h2>
                 </div>
-                <i class="fas fa-user-slash text-2xl text-red-500"></i>
+                <i class="fas fa-user-slash text-2xl text-primary"></i>
             </div>
         </div>
     </div>
@@ -63,7 +63,7 @@
                     <h6 class="text-sm font-medium text-muted-foreground">Interdiction</h6>
                     <h2 class="text-2xl font-bold text-foreground">{{ $statusStats['terminated'] ?? 0 }}</h2>
                 </div>
-                <i class="fas fa-user-times text-2xl text-red-500"></i>
+                <i class="fas fa-user-times text-2xl text-primary"></i>
             </div>
         </div>
     </div>

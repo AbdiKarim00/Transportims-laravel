@@ -15,71 +15,105 @@ class MaintenanceReportController extends Controller
     public function index(Request $request)
     {
         // Get date range from request or default to last 30 days
-        $startDate = $request->get('start_date', now()->subDays(30));
-        $endDate = $request->get('end_date', now());
+        $startDate = $request->get("start_date", now()->subDays(30));
+        $endDate = $request->get("end_date", now());
 
         // Get total maintenance costs and counts
-        $maintenanceMetrics = MaintenanceRecord::whereBetween('service_date', [$startDate, $endDate])
+        $maintenanceMetrics = MaintenanceRecord::whereBetween(
+            "scheduled_date",
+            [$startDate, $endDate]
+        )
             ->select(
-                DB::raw('COUNT(*) as total_maintenance'),
-                DB::raw('SUM(cost) as total_cost'),
-                DB::raw('AVG(cost) as avg_cost')
+                DB::raw("COUNT(*) as total_maintenance"),
+                DB::raw("SUM(estimated_cost) as total_cost"),
+                DB::raw("AVG(estimated_cost) as avg_cost")
             )
             ->first();
 
         // Get maintenance by vehicle type
-        $maintenanceByType = Vehicle::join('maintenance_records', 'vehicles.id', '=', 'maintenance_records.vehicle_id')
-            ->join('vehicle_types', 'vehicles.type_id', '=', 'vehicle_types.id')
-            ->whereBetween('maintenance_records.service_date', [$startDate, $endDate])
+        $maintenanceByType = Vehicle::join(
+            "maintenance_schedules",
+            "vehicles.id",
+            "=",
+            "maintenance_schedules.vehicle_id"
+        )
+            ->join("vehicle_types", "vehicles.type_id", "=", "vehicle_types.id")
+            ->whereBetween("maintenance_schedules.scheduled_date", [
+                $startDate,
+                $endDate,
+            ])
             ->select(
-                'vehicle_types.name as type',
-                DB::raw('COUNT(*) as total_maintenance'),
-                DB::raw('SUM(maintenance_records.cost) as total_cost')
+                "vehicle_types.name as type",
+                DB::raw("COUNT(*) as total_maintenance"),
+                DB::raw(
+                    "SUM(maintenance_schedules.estimated_cost) as total_cost"
+                )
             )
-            ->groupBy('vehicle_types.name')
+            ->groupBy("vehicle_types.name")
             ->get();
 
         // Get active maintenance alerts
-        $maintenanceAlerts = MaintenanceAlert::with(['vehicle'])
-            ->where('status', 'active')
-            ->orderBy('due_date')
+        $maintenanceAlerts = MaintenanceAlert::with(["vehicle"])
+            ->where("status", "active")
+            ->orderBy("due_date")
             ->limit(10)
             ->get();
 
         // Get maintenance trend (monthly)
-        $maintenanceTrend = MaintenanceRecord::whereBetween('service_date', [$startDate, $endDate])
+        $maintenanceTrend = MaintenanceRecord::whereBetween("scheduled_date", [
+            $startDate,
+            $endDate,
+        ])
             ->select(
-                DB::raw('DATE_TRUNC(\'month\', service_date) as month'),
-                DB::raw('COUNT(*) as total_maintenance'),
-                DB::raw('SUM(cost) as total_cost')
+                DB::raw('DATE_TRUNC(\'month\', scheduled_date) as month'),
+                DB::raw("COUNT(*) as total_maintenance"),
+                DB::raw("SUM(estimated_cost) as total_cost")
             )
-            ->groupBy('month')
-            ->orderBy('month')
+            ->groupBy("month")
+            ->orderBy("month")
             ->get();
 
         // Get top vehicles by maintenance cost
-        $topMaintenanceVehicles = Vehicle::join('maintenance_records', 'vehicles.id', '=', 'maintenance_records.vehicle_id')
-            ->whereBetween('maintenance_records.service_date', [$startDate, $endDate])
+        $topMaintenanceVehicles = Vehicle::join(
+            "maintenance_schedules",
+            "vehicles.id",
+            "=",
+            "maintenance_schedules.vehicle_id"
+        )
+            ->whereBetween("maintenance_schedules.scheduled_date", [
+                $startDate,
+                $endDate,
+            ])
             ->select(
-                'vehicles.registration_no',
-                'vehicles.make',
-                'vehicles.model',
-                DB::raw('COUNT(*) as total_maintenance'),
-                DB::raw('SUM(maintenance_records.cost) as total_cost')
+                "vehicles.registration_no",
+                "vehicles.make",
+                "vehicles.model",
+                DB::raw("COUNT(*) as total_maintenance"),
+                DB::raw(
+                    "SUM(maintenance_schedules.estimated_cost) as total_cost"
+                )
             )
-            ->groupBy('vehicles.id', 'vehicles.registration_no', 'vehicles.make', 'vehicles.model')
-            ->orderByDesc('total_cost')
+            ->groupBy(
+                "vehicles.id",
+                "vehicles.registration_no",
+                "vehicles.make",
+                "vehicles.model"
+            )
+            ->orderByDesc("total_cost")
             ->limit(10)
             ->get();
 
-        return view('admin.maintenance-reports', compact(
-            'maintenanceMetrics',
-            'maintenanceByType',
-            'maintenanceAlerts',
-            'maintenanceTrend',
-            'topMaintenanceVehicles',
-            'startDate',
-            'endDate'
-        ));
+        return view(
+            "admin.maintenance-reports",
+            compact(
+                "maintenanceMetrics",
+                "maintenanceByType",
+                "maintenanceAlerts",
+                "maintenanceTrend",
+                "topMaintenanceVehicles",
+                "startDate",
+                "endDate"
+            )
+        );
     }
 }

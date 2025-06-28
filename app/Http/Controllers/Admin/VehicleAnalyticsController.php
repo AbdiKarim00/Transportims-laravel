@@ -36,9 +36,8 @@ class VehicleAnalyticsController extends Controller
         // Permits/Licenses Stats
         $totalLicenses = DriverLicense::count();
         $validLicenses = DriverLicense::where('expiry_date', '>', now())->count();
-        $expiringLicenses = DriverLicense::whereBetween('expiry_date', [now(), now()->addDays(30)])->count();
         $expiredLicenses = DriverLicense::where('expiry_date', '<', now())->count();
-        $expiringLicensesDetails = DriverLicense::with('driver')->where('expiry_date', '<', now()->addDays(30))->get();
+        $expiringLicenses = DriverLicense::with('driver')->where('expiry_date', '<', now()->addDays(30))->get();
 
         // Odometer Stats
         $averageOdometer = 0;
@@ -81,7 +80,6 @@ class VehicleAnalyticsController extends Controller
             'validLicenses',
             'expiringLicenses',
             'expiredLicenses',
-            'expiringLicensesDetails',
             'averageOdometer',
             'highestOdometer',
             'lowestOdometer',

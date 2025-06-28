@@ -12,19 +12,19 @@
     <!-- Navigation Tabs -->
     <div class="border-b border-border mb-6">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <a href="{{ route('admin.financial-management', ['tab' => 'overview']) }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.index') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-chart-pie mr-2"></i> Overview
             </a>
-            <a href="{{ route('admin.financial-management', ['tab' => 'fuel-reports']) }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.fuel-reports') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-gas-pump mr-2"></i> Fuel Reports
             </a>
-            <a href="{{ route('admin.financial-management', ['tab' => 'fuel-cards']) }}" class="border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.fuel-cards') }}" class="border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-credit-card mr-2"></i> Fuel Cards
             </a>
-            <a href="{{ route('admin.financial-management', ['tab' => 'trip-expenses']) }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.trip-expenses') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-receipt mr-2"></i> Trip Expenses
             </a>
-            <a href="{{ route('admin.financial-management', ['tab' => 'insurance']) }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.insurance') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-file-contract mr-2"></i> Insurance
             </a>
         </nav>
@@ -51,7 +51,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h6 class="text-sm font-medium text-gray-500">Expiring Soon</h6>
-                    <h2 class="text-2xl font-bold text-gray-900">{{ $expiringCards->count() }}</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ number_format($summaryMetrics['expiring_soon']) }}</h2>
                 </div>
                 <i class="fas fa-clock text-2xl text-yellow-500"></i>
             </div>
@@ -65,7 +65,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h6 class="text-sm font-medium text-gray-500">High Utilization</h6>
-                    <h2 class="text-2xl font-bold text-gray-900">{{ $highUtilizationCards->count() }}</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ number_format($summaryMetrics['high_utilization']) }}</h2>
                 </div>
                 <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
             </div>
@@ -79,7 +79,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h6 class="text-sm font-medium text-gray-500">Total Fuel Costs</h6>
-                    <h2 class="text-2xl font-bold text-gray-900">KSh {{ number_format($summaryMetrics['fuel_costs'], 2) }}</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">KSh {{ number_format($summaryMetrics['total_spent'], 2) }}</h2>
                 </div>
                 <i class="fas fa-gas-pump text-2xl text-green-500"></i>
             </div>
@@ -93,8 +93,7 @@
     <div class="bg-white rounded-lg shadow-sm p-6">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-lg font-semibold text-gray-900">All Fuel Cards</h3>
-            <form action="{{ route('admin.financial-management', ['tab' => 'fuel-cards']) }}" method="GET" class="flex items-center space-x-2">
-                <input type="hidden" name="tab" value="fuel-cards">
+            <form action="{{ route('admin.financial-management.fuel-cards') }}" method="GET" class="flex items-center space-x-2">
                 <div class="relative">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search cards..." class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -102,7 +101,7 @@
                     </div>
                 </div>
                 @if(request('search'))
-                <a href="{{ route('admin.financial-management', ['tab' => 'fuel-cards']) }}" class="text-gray-500 hover:text-gray-700">
+                <a href="{{ route('admin.financial-management.fuel-cards') }}" class="text-gray-500 hover:text-gray-700">
                     <i class="fas fa-times"></i>
                 </a>
                 @endif

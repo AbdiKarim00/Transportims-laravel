@@ -55,7 +55,7 @@ class Incident extends Model
 
     public function severity(): BelongsTo
     {
-        return $this->belongsTo(IncidentSeverity::class, 'severity_id');
+        return $this->belongsTo(IncidentSeverity::class, 'incident_severity_id');
     }
 
     public function reportedBy(): BelongsTo

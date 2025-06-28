@@ -104,17 +104,13 @@ Route::middleware(['web', 'auth'])->group(function () {
         });
 
         // Removed resource routes (CRUD operations) to focus only on analytics and reporting
+        Route::get('/safety-dashboard', [App\Http\Controllers\Admin\SafetyDashboardController::class, 'index'])->name('safety-dashboard');
     });
 
     // Password Change Routes
     Route::get('/password/change', [App\Http\Controllers\Auth\PasswordController::class, 'showChangeForm'])->name('password.change');
     Route::post('/password/change', [App\Http\Controllers\Auth\PasswordController::class, 'change'])->name('password.change.submit');
 });
-
-// Safety Dashboard
-Route::get('/admin/safety-dashboard', [App\Http\Controllers\Admin\SafetyDashboardController::class, 'index'])
-    ->name('admin.safety-dashboard')
-    ->middleware(['auth', 'admin']);
 
 // Remove old dashboard routes
 // Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'index']);

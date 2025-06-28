@@ -64,7 +64,7 @@ class FinancialManagementController extends Controller
         // Active insurance policies
         $activeInsurancePolicies = InsurancePolicy::where('end_date', '>=', now())
             ->where('start_date', '<=', now())
-            ->where('status', 'active')
+            ->where('status', true)
             ->count();
 
         // Insurance costs (monthly premiums during period)
@@ -77,7 +77,7 @@ class FinancialManagementController extends Controller
                         ->where('end_date', '>=', $endDate);
                 });
         })
-            ->where('status', 'active')
+            ->where('status', true)
             ->sum('premium_amount') / 12 * $monthDiff;
 
         // Active fuel cards
@@ -99,7 +99,7 @@ class FinancialManagementController extends Controller
         // Get budget information
         $currentFiscalYear = Carbon::now()->year;
         $totalBudget = Budget::where('fiscal_year', $currentFiscalYear)
-            ->where('status', 'active')
+            ->where('status', true)
             ->sum('amount');
 
         // Get pending expense approvals
@@ -250,39 +250,134 @@ class FinancialManagementController extends Controller
         $endDate = request('end_date') ? Carbon::parse(request('end_date')) : Carbon::now();
         $startDate = request('start_date') ? Carbon::parse(request('start_date')) : $endDate->copy()->subDays(30);
 
-        // Get fuel metrics
-        $fuelMetrics = $this->getFuelMetrics($startDate, $endDate);
-
-        // Get monthly fuel trends
-        $monthlyFuelTrends = $this->getMonthlyFuelTrends($startDate, $endDate);
-
-        // Get top fuel consuming vehicles
-        $topFuelVehicles = $this->getTopFuelVehicles($startDate, $endDate);
+        // Get fuel report metrics
+        $summaryMetrics = $this->getFuelSummaryMetrics($startDate, $endDate);
+        $consumptionByType = $this->getConsumptionByType($startDate, $endDate);
+        $consumptionTrend = $this->getConsumptionTrend($startDate, $endDate);
+        $topConsumers = $this->getTopFuelConsumers($startDate, $endDate);
+        $fuelEfficiency = $this->getFuelEfficiency($startDate, $endDate);
 
         return view('admin.financial-management.fuel-reports', compact(
-            'fuelMetrics',
-            'monthlyFuelTrends',
-            'topFuelVehicles',
+            'summaryMetrics',
+            'consumptionByType',
+            'consumptionTrend',
+            'topConsumers',
+            'fuelEfficiency',
             'startDate',
             'endDate'
         ));
     }
 
+    private function getFuelSummaryMetrics($startDate, $endDate)
+    {
+        $query = FuelTransaction::whereBetween('transaction_date', [$startDate, $endDate]);
+
+        $totalCost = $query->sum('total_amount');
+        $totalLiters = $query->sum('liters');
+        $totalTransactions = $query->count();
+        $avgPricePerLiter = $totalLiters > 0 ? $totalCost / $totalLiters : 0;
+
+        return [
+            'total_cost' => $totalCost,
+            'total_liters' => $totalLiters,
+            'total_transactions' => $totalTransactions,
+            'avg_price_per_liter' => $avgPricePerLiter,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+        ];
+    }
+
+    private function getConsumptionByType($startDate, $endDate)
+    {
+        return FuelTransaction::join('vehicles', 'fuel_transactions.vehicle_id', '=', 'vehicles.id')
+            ->join('vehicle_types', 'vehicles.type_id', '=', 'vehicle_types.id')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->select('vehicle_types.name as type', DB::raw('SUM(fuel_transactions.liters) as total_liters'))
+            ->groupBy('vehicle_types.name')
+            ->get();
+    }
+
+    private function getConsumptionTrend($startDate, $endDate)
+    {
+        return FuelTransaction::whereBetween('transaction_date', [$startDate, $endDate])
+            ->select(
+                DB::raw("to_char(transaction_date, 'YYYY-MM') as month"),
+                DB::raw('SUM(liters) as total_liters')
+            )
+            ->groupBy(DB::raw("to_char(transaction_date, 'YYYY-MM')"))
+            ->orderBy('month')
+            ->get();
+    }
+
+    private function getTopFuelConsumers($startDate, $endDate)
+    {
+        return Vehicle::join('fuel_transactions', 'vehicles.id', '=', 'fuel_transactions.vehicle_id')
+            ->whereBetween('fuel_transactions.transaction_date', [$startDate, $endDate])
+            ->select(
+                'vehicles.registration_no',
+                'vehicles.make',
+                'vehicles.model',
+                DB::raw('SUM(fuel_transactions.liters) as total_liters'),
+                DB::raw('SUM(fuel_transactions.total_amount) as total_cost'),
+                DB::raw('CASE WHEN SUM(fuel_transactions.liters) > 0 THEN SUM(fuel_transactions.total_amount) / SUM(fuel_transactions.liters) ELSE 0 END as avg_price_per_liter')
+            )
+            ->groupBy('vehicles.registration_no', 'vehicles.make', 'vehicles.model')
+            ->orderByDesc('total_liters')
+            ->limit(10)
+            ->get();
+    }
+
+    private function getFuelEfficiency($startDate, $endDate)
+    {
+        // This requires odometer readings from trips or vehicle logs
+        // This is a placeholder implementation
+        return collect([]);
+    }
+
+
     public function fuelCards()
     {
-        // Get date range from request or default to last 30 days
         $endDate = request('end_date') ? Carbon::parse(request('end_date')) : Carbon::now();
         $startDate = request('start_date') ? Carbon::parse(request('start_date')) : $endDate->copy()->subDays(30);
 
-        // Get fuel card metrics
-        $fuelCardMetrics = $this->getFuelCardMetrics($startDate, $endDate);
+        $activeCards = FuelCard::where('status', 'active')->count();
+        $expiringSoonQuery = FuelCard::where('status', 'active')->whereBetween('expiry_date', [now(), now()->addDays(30)]);
+        $totalTransactions = FuelTransaction::whereBetween('transaction_date', [$startDate, $endDate])->count();
+        $totalSpent = FuelTransaction::whereBetween('transaction_date', [$startDate, $endDate])->sum('total_amount');
 
-        // Get fuel card transactions
-        $fuelCardTransactions = $this->getFuelCardTransactions($startDate, $endDate);
+        // Define placeholder for high utilization cards
+        $highUtilizationCards = collect([]);
+
+        $summaryMetrics = [
+            'active_fuel_cards' => $activeCards,
+            'expiring_soon' => $expiringSoonQuery->count(),
+            'total_transactions' => $totalTransactions,
+            'total_spent' => $totalSpent,
+            'high_utilization' => $highUtilizationCards->count(),
+        ];
+
+        $fuelCardsQuery = FuelCard::with('provider');
+
+        if (request('search')) {
+            $searchTerm = request('search');
+            $fuelCardsQuery->where(function ($query) use ($searchTerm) {
+                $query->where('card_number', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('holder_name', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        $fuelCards = $fuelCardsQuery->paginate(10);
+        $fuelCards->appends(request()->query());
+
+        $expiringCards = $expiringSoonQuery->with('provider')->get();
+        $recentTransactions = FuelTransaction::with('vehicle', 'fuelCard')->orderBy('transaction_date', 'desc')->limit(10)->get();
 
         return view('admin.financial-management.fuel-cards', compact(
-            'fuelCardMetrics',
-            'fuelCardTransactions',
+            'summaryMetrics',
+            'fuelCards',
+            'expiringCards',
+            'highUtilizationCards',
+            'recentTransactions',
             'startDate',
             'endDate'
         ));
@@ -290,19 +385,58 @@ class FinancialManagementController extends Controller
 
     public function tripExpenses()
     {
-        // Get date range from request or default to last 30 days
         $endDate = request('end_date') ? Carbon::parse(request('end_date')) : Carbon::now();
         $startDate = request('start_date') ? Carbon::parse(request('start_date')) : $endDate->copy()->subDays(30);
 
-        // Get trip expense metrics
-        $tripExpenseMetrics = $this->getTripExpenseMetrics($startDate, $endDate);
+        $totalExpenses = TripExpense::whereBetween('created_at', [$startDate, $endDate])->sum('amount');
+        $totalTripsWithExpenses = TripExpense::whereBetween('created_at', [$startDate, $endDate])->distinct('trip_id')->count();
+        $averageExpensePerTrip = $totalTripsWithExpenses > 0 ? $totalExpenses / $totalTripsWithExpenses : 0;
 
-        // Get trip expenses
-        $tripExpenses = $this->getTripExpenses($startDate, $endDate);
+        $summaryMetrics = [
+            'total_expenses' => $totalExpenses,
+            'total_trips_with_expenses' => $totalTripsWithExpenses,
+            'average_expense_per_trip' => $averageExpensePerTrip,
+        ];
+
+        $expenseBreakdown = TripExpense::join('trips', 'trip_expenses.trip_id', '=', 'trips.id')
+            ->join('vehicles', 'trips.vehicle_id', '=', 'vehicles.id')
+            ->whereBetween('trip_expenses.created_at', [$startDate, $endDate])
+            ->select('vehicles.registration_no', DB::raw('SUM(trip_expenses.amount) as total_amount'))
+            ->groupBy('vehicles.registration_no')
+            ->orderByDesc('total_amount')
+            ->limit(5)
+            ->get();
+
+        $expenseCategories = TripExpense::whereBetween('created_at', [$startDate, $endDate])
+            ->select('category', DB::raw('count(*) as count, sum(amount) as total_amount'))
+            ->groupBy('category')
+            ->get();
+
+        $topSpendingTrips = TripExpense::with('trip')
+            ->select('trip_id', DB::raw('COUNT(*) as expense_count'), DB::raw('SUM(amount) as total_amount'))
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('trip_id')
+            ->orderByDesc('total_amount')
+            ->limit(5)
+            ->get();
+
+        $recentExpenses = TripExpense::with('trip.vehicle')->orderBy('created_at', 'desc')->paginate(10);
+
+        // Find expenses that do not have an approval entry or where the approval status is 'pending'
+        $pendingExpenses = TripExpense::whereDoesntHave('expenseApproval')
+            ->orWhereHas('expenseApproval', function ($query) {
+                $query->where('status', 'pending');
+            })
+            ->with('trip.vehicle')
+            ->get();
 
         return view('admin.financial-management.trip-expenses', compact(
-            'tripExpenseMetrics',
-            'tripExpenses',
+            'summaryMetrics',
+            'expenseBreakdown',
+            'expenseCategories',
+            'topSpendingTrips',
+            'recentExpenses',
+            'pendingExpenses',
             'startDate',
             'endDate'
         ));
@@ -310,40 +444,60 @@ class FinancialManagementController extends Controller
 
     public function insurance()
     {
-        // Get date range from request or default to last 30 days
         $endDate = request('end_date') ? Carbon::parse(request('end_date')) : Carbon::now();
         $startDate = request('start_date') ? Carbon::parse(request('start_date')) : $endDate->copy()->subDays(30);
 
-        // Get insurance metrics
-        $insuranceMetrics = $this->getInsuranceMetrics($startDate, $endDate);
+        $activePolicies = InsurancePolicy::where('status', true)->where('end_date', '>=', now())->count();
+        $expiringSoon = InsurancePolicy::where('status', true)->whereBetween('end_date', [now(), now()->addDays(30)])->count();
+        $totalPremiums = InsurancePolicy::where('status', true)->sum('premium_amount');
+        $averagePremium = $activePolicies > 0 ? $totalPremiums / $activePolicies : 0;
 
-        // Get insurance policies
-        $insurancePolicies = $this->getInsurancePolicies($startDate, $endDate);
+        $insuranceCosts = InsurancePolicy::where('status', true)
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate)
+                            ->where('end_date', '>=', $endDate);
+                    });
+            })
+            ->sum('premium_amount');
+
+        $summaryMetrics = [
+            'active_policies' => $activePolicies,
+            'expiring_soon' => $expiringSoon,
+            'total_premiums' => $totalPremiums,
+            'average_premium' => $averagePremium,
+            'insurance_costs' => $insuranceCosts,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+        ];
+
+        $insurancePolicies = InsurancePolicy::with('vehicle', 'provider')->paginate(10);
+
+        $claims = collect([]); // Placeholder for claims data
+        $expiringPolicies = InsurancePolicy::where('status', true)
+            ->whereBetween('end_date', [now(), now()->addDays(30)])
+            ->get();
+        $uninsuredVehicles = Vehicle::whereDoesntHave('insurancePolicies', function ($query) {
+            $query->where('status', true)
+                ->where('end_date', '>=', now());
+        })->get();
+        $expiredPolicies = collect([]);
+        $activeClaims = collect([]);
 
         return view('admin.financial-management.insurance', compact(
-            'insuranceMetrics',
+            'summaryMetrics',
             'insurancePolicies',
-            'startDate',
-            'endDate'
+            'claims',
+            'expiringPolicies',
+            'uninsuredVehicles',
+            'expiredPolicies',
+            'activeClaims'
         ));
     }
 
     // Helper methods for getting metrics and data
-    private function getFuelMetrics($startDate, $endDate)
-    {
-        // Implementation
-    }
-
-    private function getMonthlyFuelTrends($startDate, $endDate)
-    {
-        // Implementation
-    }
-
-    private function getTopFuelVehicles($startDate, $endDate)
-    {
-        // Implementation
-    }
-
     private function getFuelCardMetrics($startDate, $endDate)
     {
         // Implementation

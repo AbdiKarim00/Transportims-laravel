@@ -25,19 +25,19 @@
     <!-- Navigation Tabs -->
     <div class="border-b border-border mb-6">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <a href="{{ route('admin.financial-management.index', ['tab' => 'overview']) }}" class="border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.index') }}" class="border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-chart-pie mr-2"></i> Overview
             </a>
-            <a href="{{ route('admin.financial-management.index', ['tab' => 'fuel-reports']) }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.fuel-reports') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-gas-pump mr-2"></i> Fuel Reports
             </a>
-            <a href="{{ route('admin.financial-management.index', ['tab' => 'fuel-cards']) }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.fuel-cards') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-credit-card mr-2"></i> Fuel Cards
             </a>
-            <a href="{{ route('admin.financial-management.index', ['tab' => 'trip-expenses']) }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.trip-expenses') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-receipt mr-2"></i> Trip Expenses
             </a>
-            <a href="{{ route('admin.financial-management.index', ['tab' => 'insurance']) }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.insurance') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-file-contract mr-2"></i> Insurance
             </a>
         </nav>

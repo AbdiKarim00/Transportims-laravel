@@ -80,10 +80,12 @@ class SafetyDashboardController extends Controller
 
     protected function getIncidentDistribution($startDate, $endDate)
     {
-        $distribution = IncidentType::withCount(['incidents' => function ($query) use ($startDate, $endDate) {
+        $constraint = function ($query) use ($startDate, $endDate) {
             $query->whereBetween('incident_date', [$startDate, $endDate]);
-        }])
-            ->having('incidents_count', '>', 0)
+        };
+
+        $distribution = IncidentType::withCount(['incidents' => $constraint])
+            ->whereHas('incidents', $constraint)
             ->get();
 
         return [
@@ -97,12 +99,14 @@ class SafetyDashboardController extends Controller
         $analysis = IncidentSeverity::withCount(['incidents' => function ($query) use ($startDate, $endDate) {
             $query->whereBetween('incident_date', [$startDate, $endDate]);
         }])
-            ->having('incidents_count', '>', 0)
-            ->orderBy('level')
+            ->whereHas('incidents', function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('incident_date', [$startDate, $endDate]);
+            })
+            ->orderBy('name')
             ->get();
 
         return [
-            'labels' => $analysis->pluck('level'),
+            'labels' => $analysis->pluck('name'),
             'data' => $analysis->pluck('incidents_count')
         ];
     }
@@ -149,13 +153,8 @@ class SafetyDashboardController extends Controller
                 $query->where('end_date', '>', now());
             })->count(),
             'vehicles_with_valid_inspection' => Vehicle::whereHas('maintenanceRecords', function ($query) {
-                $query->where('maintenance_type_id', function ($q) {
-                    $q->select('id')
-                        ->from('maintenance_types')
-                        ->where('name', 'like', '%inspection%')
-                        ->limit(1);
-                })
-                    ->where('next_service_date', '>', now());
+                $query->where('maintenance_type', 'like', '%inspection%')
+                    ->where('scheduled_date', '>', now());
             })->count(),
             'drivers_with_valid_licenses' => Driver::whereHas('licenses', function ($query) {
                 $query->where('expiry_date', '>', now());
@@ -172,11 +171,9 @@ class SafetyDashboardController extends Controller
                 ->where('expiry_date', '<=', now()->addMonths(3))
                 ->with('driver')
                 ->get(),
-            'inspection_expirations' => MaintenanceRecord::whereHas('maintenanceType', function ($query) {
-                $query->where('name', 'like', '%inspection%');
-            })
-                ->where('next_service_date', '>', now())
-                ->where('next_service_date', '<=', now()->addMonths(3))
+            'inspection_expirations' => MaintenanceRecord::where('maintenance_type', 'like', '%inspection%')
+                ->where('scheduled_date', '>', now())
+                ->where('scheduled_date', '<=', now()->addMonths(3))
                 ->with('vehicle')
                 ->get()
         ];
@@ -214,8 +211,8 @@ class SafetyDashboardController extends Controller
         // Get risk trends
         $riskTrends = [
             'incidents_by_severity' => Incident::whereBetween('incident_date', [$startDate, $endDate])
-                ->select('severity_id', DB::raw('count(*) as count'))
-                ->groupBy('severity_id')
+                ->select('incident_severity_id', DB::raw('count(*) as count'))
+                ->groupBy('incident_severity_id')
                 ->get(),
             'incidents_by_type' => Incident::whereBetween('incident_date', [$startDate, $endDate])
                 ->select('incident_type_id', DB::raw('count(*) as count'))

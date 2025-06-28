@@ -9,8 +9,7 @@
         </div>
 
         <!-- Date Range Picker Form -->
-        <form action="{{ route('admin.financial-management') }}" method="GET" class="flex space-x-2">
-            <input type="hidden" name="tab" value="insurance">
+        <form action="{{ route('admin.financial-management.insurance') }}" method="GET" class="flex space-x-2">
             <div class="flex items-center space-x-2">
                 <input type="date" name="start_date" value="{{ $summaryMetrics['start_date'] }}" class="border-border rounded-md text-sm px-3 py-1.5">
                 <span class="text-muted-foreground">to</span>
@@ -23,19 +22,19 @@
     <!-- Navigation Tabs -->
     <div class="border-b border-border mb-6">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <a href="{{ route('admin.financial-management') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.index') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-chart-pie mr-2"></i> Overview
             </a>
-            <a href="{{ route('admin.financial-management.fuel-reports') }}?tab=fuel-reports" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.fuel-reports') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-gas-pump mr-2"></i> Fuel Reports
             </a>
-            <a href="{{ route('admin.financial-management.fuel-cards') }}?tab=fuel-cards" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.fuel-cards') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-credit-card mr-2"></i> Fuel Cards
             </a>
-            <a href="{{ route('admin.financial-management.trip-expenses') }}?tab=trip-expenses" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.trip-expenses') }}" class="border-transparent text-muted-foreground hover:text-foreground hover:border-border whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-receipt mr-2"></i> Trip Expenses
             </a>
-            <a href="{{ route('admin.financial-management.insurance') }}?tab=insurance" class="border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
+            <a href="{{ route('admin.financial-management.insurance') }}" class="border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">
                 <i class="fas fa-file-contract mr-2"></i> Insurance
             </a>
         </nav>
@@ -241,8 +240,7 @@
                     <h3 class="text-lg font-medium text-foreground">Uninsured Vehicles</h3>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <form action="{{ route('admin.financial-management') }}" method="GET" class="flex items-center">
-                        <input type="hidden" name="tab" value="insurance">
+                    <form action="{{ route('admin.financial-management.insurance') }}" method="GET" class="flex items-center">
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search vehicles..."
                             class="border-border rounded-md text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary">
                         <button type="submit" class="bg-primary text-primary-foreground px-3 py-1.5 rounded-md text-sm ml-2">

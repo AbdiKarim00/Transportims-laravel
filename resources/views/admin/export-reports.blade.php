@@ -2,287 +2,312 @@
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-    <h1 class="text-2xl font-semibold text-foreground mt-4">Export Reports</h1>
-    <nav class="flex" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-                <a href="{{ route('admin.dashboard') }}" class="text-muted-foreground hover:text-primary">Overview</a>
-            </li>
-            <li>
-                <div class="flex items-center">
-                    <i class="fas fa-chevron-right text-muted-foreground mx-2"></i>
-                    <span class="text-foreground">Export Reports</span>
-                </div>
-            </li>
-        </ol>
-    </nav>
-
-    @if(session('error'))
-    <div class="mt-4 bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded relative" role="alert">
-        <span class="block sm:inline">{{ session('error') }}</span>
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-foreground">Export Reports</h1>
+        <p class="text-muted-foreground mt-2">Generate comprehensive reports for your transport management system</p>
     </div>
-    @endif
 
-    @if($errors->any())
-    <div class="mt-4 bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded relative" role="alert">
-        <ul class="list-disc list-inside">
-            @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
-
-    <div class="mt-4 bg-card text-card-foreground rounded-lg shadow-md animate-fade-in">
-        <div class="px-6 py-4 border-b border-border">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <i class="fas fa-file-export text-primary mr-2"></i>
-                    <h3 class="text-lg font-medium text-foreground">Generate Report</h3>
+    <!-- Summary Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <i class="fas fa-route text-blue-600"></i>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button type="submit" form="reportForm"
-                        class="inline-flex items-center px-4 py-2 text-sm text-primary hover:text-primary/90 transition-colors">
-                        <i class="fas fa-download mr-2"></i> Generate Report
-                    </button>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-muted-foreground">Total Trips</p>
+                    <p class="text-2xl font-bold text-foreground">{{ number_format($summaryStats['total_trips']) }}</p>
                 </div>
             </div>
         </div>
-        <div class="p-6">
-            <form action="{{ route('admin.export-reports.export') }}" method="POST" id="reportForm" enctype="multipart/form-data">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="report_type" class="block text-sm font-medium text-muted-foreground mb-2">Report Type</label>
-                        <select id="report_type" name="report_type" required
-                            class="w-full px-4 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary @error('report_type') border-destructive @enderror">
-                            <option value="">Select Report Type</option>
-                            @foreach($reportTypes as $value => $label)
-                            <option value="{{ $value }}" {{ old('report_type', $currentReportType) === $value ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('report_type')
-                        <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <div class="flex items-center">
+                <div class="p-2 bg-green-100 rounded-lg">
+                    <i class="fas fa-tools text-green-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-muted-foreground">Maintenance Records</p>
+                    <p class="text-2xl font-bold text-foreground">{{ number_format($summaryStats['total_maintenance']) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <div class="flex items-center">
+                <div class="p-2 bg-yellow-100 rounded-lg">
+                    <i class="fas fa-gas-pump text-yellow-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-muted-foreground">Fuel Transactions</p>
+                    <p class="text-2xl font-bold text-foreground">{{ number_format($summaryStats['total_fuel_transactions']) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-card rounded-lg p-6 border border-border">
+            <div class="flex items-center">
+                <div class="p-2 bg-red-100 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-muted-foreground">Incidents</p>
+                    <p class="text-2xl font-bold text-foreground">{{ number_format($summaryStats['total_incidents']) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Configuration -->
+    <div class="bg-card rounded-lg border border-border mb-8">
+        <div class="p-6 border-b border-border">
+            <h2 class="text-xl font-semibold text-foreground">Report Configuration</h2>
+            <p class="text-muted-foreground mt-1">Select report type, date range, and export format</p>
+        </div>
+
+        <form action="{{ route('admin.export-reports.export') }}" method="POST" id="exportForm" class="p-6">
+            @csrf
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Report Type Selection -->
+                <div>
+                    <label for="report_type" class="block text-sm font-medium text-foreground mb-3">Report Type</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        @foreach($reportTypes as $key => $report)
+                        <div class="relative">
+                            <input type="radio" id="report_{{ $key }}" name="report_type" value="{{ $key }}"
+                                class="peer hidden" {{ $currentReportType === $key ? 'checked' : '' }}>
+                            <label for="report_{{ $key }}"
+                                class="block p-4 border border-border rounded-lg cursor-pointer transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                                        <i class="{{ $report['icon'] }} text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium text-foreground">{{ $report['name'] }}</h3>
+                                        <p class="text-sm text-muted-foreground">{{ $report['description'] }}</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        @endforeach
+                    </div>
+                    @error('report_type')
+                    <p class="mt-2 text-sm text-destructive">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Date Range and Format -->
+                <div class="space-y-6">
+                    <!-- Date Range -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="start_date" class="block text-sm font-medium text-foreground mb-2">Start Date</label>
+                            <input type="date" id="start_date" name="start_date"
+                                value="{{ $startDate->format('Y-m-d') }}"
+                                class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            @error('start_date')
+                            <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="end_date" class="block text-sm font-medium text-foreground mb-2">End Date</label>
+                            <input type="date" id="end_date" name="end_date"
+                                value="{{ $endDate->format('Y-m-d') }}"
+                                class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            @error('end_date')
+                            <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
+                    <!-- Export Format -->
                     <div>
-                        <label for="format" class="block text-sm font-medium text-muted-foreground mb-2">Export Format</label>
-                        <select id="format" name="format" required
-                            class="w-full px-4 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary @error('format') border-destructive @enderror">
-                            <option value="csv" {{ old('format') === 'csv' ? 'selected' : '' }}>CSV</option>
-                            <option value="excel" {{ old('format') === 'excel' ? 'selected' : '' }}>Excel</option>
-                            <option value="pdf" {{ old('format') === 'pdf' ? 'selected' : '' }}>PDF</option>
+                        <label for="format" class="block text-sm font-medium text-foreground mb-2">Export Format</label>
+                        <select id="format" name="format"
+                            class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="csv">CSV</option>
+                            <option value="excel">Excel</option>
+                            <option value="pdf">PDF</option>
                         </select>
                         @error('format')
                         <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="start_date" class="block text-sm font-medium text-muted-foreground mb-2">Start Date</label>
-                        <input type="date" id="start_date" name="start_date" required
-                            value="{{ old('start_date', $startDate ? $startDate->format('Y-m-d') : '') }}"
-                            placeholder="Select start date"
-                            class="w-full px-4 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary @error('start_date') border-destructive @enderror">
-                        @error('start_date')
-                        <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="end_date" class="block text-sm font-medium text-muted-foreground mb-2">End Date</label>
-                        <input type="date" id="end_date" name="end_date" required
-                            value="{{ old('end_date', $endDate ? $endDate->format('Y-m-d') : '') }}"
-                            placeholder="Select end date"
-                            class="w-full px-4 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary @error('end_date') border-destructive @enderror">
-                        @error('end_date')
-                        <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div id="driverSelectContainer" class="hidden">
-                        <label for="driver_id" class="block text-sm font-medium text-muted-foreground mb-2">Select Driver</label>
+                    <!-- Driver Selection (for driver-specific reports) -->
+                    <div id="driverSelection" class="hidden">
+                        <label for="driver_id" class="block text-sm font-medium text-foreground mb-2">Select Driver (Optional)</label>
                         <select id="driver_id" name="driver_id"
-                            class="w-full px-4 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary @error('driver_id') border-destructive @enderror">
-                            <option value="">Select Driver</option>
+                            class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="">All Drivers</option>
                             @foreach($drivers as $driver)
-                            <option value="{{ $driver->id }}" {{ old('driver_id') == $driver->id ? 'selected' : '' }}>
+                            <option value="{{ $driver->id }}">
                                 {{ trim($driver->first_name . ' ' . $driver->last_name) }}
                             </option>
                             @endforeach
                         </select>
-                        @error('driver_id')
-                        <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
-                        @enderror
                     </div>
 
-                    @if(session('error'))
-                    <div class="col-span-2 mt-4 bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded relative" role="alert">
-                        <span class="block sm:inline">{{ session('error') }}</span>
-                    </div>
-                    @endif
-
-                    @if($errors->any())
-                    <div class="col-span-2 mt-4 bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded relative" role="alert">
-                        <ul class="list-disc list-inside">
-                            @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                    @endif
-                </div>
-
-                <div class="mt-6 flex justify-end">
-                    <button type="button" onclick="event.preventDefault(); document.getElementById('reportForm').reset();"
-                        class="inline-flex items-center px-4 py-2 text-sm bg-muted text-muted-foreground rounded-md hover:bg-muted/80 transition-colors">
-                        <i class="fas fa-undo mr-2"></i> Reset
+                    <!-- Generate Button -->
+                    <button type="submit"
+                        class="w-full bg-primary text-primary-foreground px-4 py-3 rounded-md hover:bg-primary/90 transition-colors font-medium">
+                        <i class="fas fa-download mr-2"></i>
+                        Generate Report
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    <!-- Sample Data Preview -->
-    <div class="mt-4 bg-card text-card-foreground rounded-lg shadow-md animate-fade-in">
-        <div class="px-6 py-4 border-b border-border">
+    <!-- Data Preview -->
+    @if($currentReportType && !empty($previewData))
+    <div class="bg-card rounded-lg border border-border">
+        <div class="p-6 border-b border-border">
             <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <i class="fas fa-table text-primary mr-2"></i>
-                    <h3 class="text-lg font-medium text-foreground">Sample Data Preview</h3>
+                <div>
+                    <h2 class="text-xl font-semibold text-foreground">Data Preview</h2>
+                    <p class="text-muted-foreground mt-1">Showing first 5 records of {{ $reportTypes[$currentReportType]['name'] }}</p>
                 </div>
                 <div class="flex items-center space-x-2">
-                    @if($currentReportType)
                     <span class="text-sm text-muted-foreground">
-                        Showing last {{ count($previewData[$currentReportType]) }} records
+                        {{ count($previewData) }} records
                     </span>
-                    <button type="button" onclick="window.print()" class="px-4 py-2 text-sm bg-muted text-muted-foreground rounded-md hover:bg-muted/80 transition-colors">
-                        <i class="fas fa-print mr-2"></i> Print
+                    <button type="button" onclick="window.print()"
+                        class="px-3 py-1 text-sm bg-muted text-muted-foreground rounded-md hover:bg-muted/80 transition-colors">
+                        <i class="fas fa-print mr-1"></i> Print
                     </button>
-                    @else
-                    <span class="text-sm text-muted-foreground">
-                        Select a report type to see preview
-                    </span>
-                    @endif
                 </div>
             </div>
         </div>
+
         <div class="overflow-x-auto">
-            @if($currentReportType)
-            <table class="min-w-full divide-y divide-border">
-                <thead class="bg-muted">
+            <table class="w-full">
+                <thead class="bg-muted/50">
                     <tr>
-                        @foreach($headers[$currentReportType] as $header)
+                        @foreach($headers as $header)
                         <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             {{ $header }}
                         </th>
                         @endforeach
                     </tr>
                 </thead>
-                <tbody class="bg-card divide-y divide-border">
-                    @foreach($previewData[$currentReportType] as $row)
-                    <tr>
-                        @foreach($row as $value)
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground">{{ $value }}</td>
+                <tbody class="divide-y divide-border">
+                    @foreach($previewData as $row)
+                    <tr class="hover:bg-muted/30">
+                        @foreach($row as $cell)
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                            {{ $cell }}
+                        </td>
                         @endforeach
                     </tr>
                     @endforeach
                 </tbody>
             </table>
-            @else
-            <div class="p-6 text-center text-muted-foreground">
-                <i class="fas fa-table text-4xl mb-4"></i>
-                <p>Please select a report type to see the data preview</p>
-            </div>
-            @endif
         </div>
     </div>
+    @elseif($currentReportType)
+    <div class="bg-card rounded-lg border border-border p-6">
+        <div class="text-center">
+            <i class="fas fa-inbox text-4xl text-muted-foreground mb-4"></i>
+            <h3 class="text-lg font-medium text-foreground mb-2">No Data Available</h3>
+            <p class="text-muted-foreground">No records found for the selected criteria. Try adjusting the date range.</p>
+        </div>
+    </div>
+    @else
+    <div class="bg-card rounded-lg border border-border p-6">
+        <div class="text-center">
+            <i class="fas fa-chart-bar text-4xl text-muted-foreground mb-4"></i>
+            <h3 class="text-lg font-medium text-foreground mb-2">Select a Report Type</h3>
+            <p class="text-muted-foreground">Choose a report type above to see a preview of the data.</p>
+        </div>
+    </div>
+    @endif
 </div>
 
-@push('scripts')
+<!-- JavaScript for dynamic behavior -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const reportTypeSelect = document.getElementById('report_type');
-        const driverSelectContainer = document.getElementById('driverSelectContainer');
-        const driverSelect = document.getElementById('driver_id');
-        const resetButton = document.querySelector('button[type="button"]');
-        const startDateInput = document.getElementById('start_date');
-        const endDateInput = document.getElementById('end_date');
+        const reportTypeInputs = document.querySelectorAll('input[name="report_type"]');
+        const driverSelection = document.getElementById('driverSelection');
+        const form = document.getElementById('exportForm');
 
-        function toggleDriverSelect() {
-            const selectedType = reportTypeSelect.value;
-            const driverReportTypes = [
-                'driver_performance',
-                'driver_status',
-                'driver_trips',
-                'driver_fuel',
-                'driver_maintenance'
-            ];
-
-            if (driverReportTypes.includes(selectedType)) {
-                driverSelectContainer.classList.remove('hidden');
-                driverSelect.required = true;
+        // Show/hide driver selection based on report type
+        function toggleDriverSelection() {
+            const selectedReport = document.querySelector('input[name="report_type"]:checked');
+            if (selectedReport && ['trips', 'fuel'].includes(selectedReport.value)) {
+                driverSelection.classList.remove('hidden');
             } else {
-                driverSelectContainer.classList.add('hidden');
-                driverSelect.required = false;
+                driverSelection.classList.add('hidden');
             }
         }
 
-        function resetForm() {
-            // Reset the form
-            document.getElementById('reportForm').reset();
+        // Update preview when report type changes
+        function updatePreview() {
+            const selectedReport = document.querySelector('input[name="report_type"]:checked');
+            if (selectedReport) {
+                const startDate = document.getElementById('start_date').value;
+                const endDate = document.getElementById('end_date').value;
 
-            // Clear report type selection
-            reportTypeSelect.value = '';
+                // Redirect to update the page with new parameters
+                const url = new URL(window.location);
+                url.searchParams.set('report_type', selectedReport.value);
+                if (startDate) url.searchParams.set('start_date', startDate);
+                if (endDate) url.searchParams.set('end_date', endDate);
 
-            // Clear date inputs
-            startDateInput.value = '';
-            endDateInput.value = '';
-
-            // Set default format to CSV
-            document.getElementById('format').value = 'csv';
-
-            // Hide driver select if it's visible
-            driverSelectContainer.classList.add('hidden');
-            driverSelect.required = false;
-
-            // Clear error messages
-            const errorMessages = document.querySelectorAll('.bg-destructive\\/10');
-            errorMessages.forEach(error => error.remove());
-
-            // Clear validation error classes
-            const errorInputs = document.querySelectorAll('.border-destructive');
-            errorInputs.forEach(input => input.classList.remove('border-destructive'));
-
-            // Clear validation error messages
-            const errorTexts = document.querySelectorAll('.text-destructive');
-            errorTexts.forEach(text => text.remove());
-
-            // Update URL to remove report_type parameter
-            const url = new URL(window.location.href);
-            url.searchParams.delete('report_type');
-            window.history.pushState({}, '', url);
-
-            // Reload the page to update the preview data
-            window.location.reload();
+                window.location.href = url.toString();
+            }
         }
 
-        reportTypeSelect.addEventListener('change', function() {
-            toggleDriverSelect();
-            // Update the URL with the selected report type
-            const url = new URL(window.location.href);
-            url.searchParams.set('report_type', this.value);
-            window.history.pushState({}, '', url);
-            // Reload the page to update the preview data
-            window.location.reload();
+        // Event listeners
+        reportTypeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                toggleDriverSelection();
+                updatePreview();
+            });
         });
 
-        resetButton.addEventListener('click', resetForm);
-
         // Initial setup
-        toggleDriverSelect();
+        toggleDriverSelection();
+
+        // Form validation
+        form.addEventListener('submit', function(e) {
+            const selectedReport = document.querySelector('input[name="report_type"]:checked');
+            if (!selectedReport) {
+                e.preventDefault();
+                alert('Please select a report type.');
+                return;
+            }
+        });
     });
 </script>
-@endpush
+
+<!-- Success/Error Messages -->
+@if(session('success'))
+<div class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+    <div class="flex items-center">
+        <i class="fas fa-check-circle mr-2"></i>
+        {{ session('success') }}
+    </div>
+</div>
+@endif
+
+@if(session('error'))
+<div class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        {{ session('error') }}
+    </div>
+</div>
+@endif
+
+@if(session('warning'))
+<div class="fixed top-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded z-50">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        {{ session('warning') }}
+    </div>
+</div>
+@endif
 @endsection
