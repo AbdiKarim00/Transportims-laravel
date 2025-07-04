@@ -102,13 +102,23 @@ class User extends Authenticatable
         return $this->status === 'active';
     }
 
-    public function roles()
+    public function role()
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
 
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
     public function hasRole($role)
     {
+        // Check both the single role relationship and many-to-many roles
+        if ($this->role && $this->role->name === $role) {
+            return true;
+        }
+
         return $this->roles()->where('name', $role)->exists();
     }
 
