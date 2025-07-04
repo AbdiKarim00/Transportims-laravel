@@ -18,8 +18,15 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || !Auth::user()->hasRole('admin')) {
-            abort(403, 'Unauthorized action.');
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $user = Auth::user();
+
+        // Check if user has admin role (assuming role_id 1 is admin based on LoginController)
+        if ($user->role_id !== 1) {
+            abort(403, 'Unauthorized action. Admin access required.');
         }
 
         return $next($request);
